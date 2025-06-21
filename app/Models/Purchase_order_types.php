@@ -1,0 +1,88 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class Purchase_order_types extends Model
+{
+    protected $guarded = [];
+    protected $appends = ['attachment_type_name','unit_name','itemgroup_name','itemcategory_name','subcategory_name','item_subcategory_name', 'itemgroup_code'];
+
+    public function atttachment_type() {
+      return $this->belongsTo(Attachment_types::class);
+    }
+	public function unit() {
+      return $this->belongsTo(Units::class);
+    }
+	public function itemgroup() {
+      return $this->belongsTo(Itemgroups::class);
+    }
+	public function itemcategory() {
+      return $this->belongsTo(Itemcategorys::class);
+    }
+	public function subcategory() {
+      return $this->belongsTo(Subcategorys::class);
+    }
+	public function item_subcategory() {
+      return $this->belongsTo(Item_subcategorys::class);
+    }
+	public function inventorys() {
+      return $this->hasMany(Inventorys::class, 'item_id', 'id');
+    }
+	
+	
+	public function getAttachmentTypeNameAttribute() {
+       $atttachment_type = $this->atttachment_type()->first();
+       return ($atttachment_type?$atttachment_type->name:null);
+    }
+	public function getUnitNameAttribute() {
+       $unit = $this->unit()->first();
+       return ($unit?$unit->unit:null);
+    }
+	public function getItemgroupNameAttribute() {
+       $itemgroup = $this->itemgroup()->first();
+       return ($itemgroup?$itemgroup->name:null);
+    }
+	public function getItemcategoryNameAttribute() {
+       $itemcategory = $this->itemcategory()->first();
+       return ($itemcategory?$itemcategory->name:null);
+    }
+	public function getSubcategoryNameAttribute() {
+       $subcategory = $this->subcategory()->first();
+       return ($subcategory?$subcategory->name:null);
+    }
+	public function getItemSubcategoryNameAttribute() {
+       $item_subcategory = $this->item_subcategory()->first();
+       return ($item_subcategory?$item_subcategory->name:null);
+    }
+	public function getItemGroupCodeAttribute() {
+       $itemgroup_code = $this->itemgroup()->first();
+       return ($itemgroup_code?$itemgroup_code->code:null);
+    }
+
+
+	public static function getNextCounterId($subcategory) {
+
+      $last_count = 1;
+
+	  $CODECATEGORY = $subcategory;
+	  
+      // get last count
+      $item = Items::select('code')
+        ->where('code','like', $CODECATEGORY.'%')
+        ->orderBy('code', 'desc')
+        ->first();
+	  
+	  if($item) {
+        $data = explode($CODECATEGORY, $item->code);
+        $last_count = intval($data[1]) + 1;
+      }
+
+      $curr_count = '';
+      $curr_count = sprintf('%05d', $curr_count + intval($last_count));
+      $COUNTER = $curr_count;
+
+      return $CODECATEGORY.$COUNTER;
+    }
+}
