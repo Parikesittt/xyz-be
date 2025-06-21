@@ -1,0 +1,105 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class Exchange_adj_ars extends Model
+{
+    protected $guarded = [];
+    protected $appends = ['attachment_type_name', 'accountNum', 'name'];
+
+    public function atttachment_type() {
+      return $this->belongsTo(Attachment_types::class);
+    }
+	public function itemcategorys(){
+        return $this->hasMany(Itemcategorys::class, 'itemgroup_id', 'id');
+    }
+	public function subcategorys(){
+        return $this->hasMany(Subcategorys::class, 'itemgroup_id', 'id');
+    }
+	public function items(){
+        return $this->hasMany(Items::class, 'itemgroup_id', 'id');
+    }
+	public function sales_orders(){
+        return $this->hasMany(Sales_orders::class, 'sales_id', 'id');
+    }
+	public function customers(){
+        return $this->belongsTo(Customers::class, 'customer_id', 'id');
+    }
+	
+	public function exchange_adj_item_ars(){
+        return $this->hasMany(Exchange_adj_item_ars::class, 'exchange_adj_ar_id', 'id');
+    }
+	
+	
+	public function getAttachmentTypeNameAttribute() {
+       $atttachment_type = $this->atttachment_type()->first();
+       return ($atttachment_type?$atttachment_type->name:null);
+    }
+	public function getAccountNumAttribute() {
+       $customers = $this->customers()->first();
+       return ($customers?$customers->accountNum:null);
+    }
+	public function getNameAttribute() {
+       $customers = $this->customers()->first();
+       return ($customers?$customers->name:null);
+    }
+	
+	public static function getNextCounterId() {
+
+      /* $app = \Slim\Slim::getInstance();
+
+
+      $last_count = 1;
+	  
+      // get last count
+      $itemgroup = Itemgroups::select('code')
+        ->orderBy('code', 'desc')
+        ->first();
+	  
+	  if($itemgroup) {
+        $data = $itemgroup->code;
+        $last_count = $data + 1;
+      }
+
+      return $last_count; */
+
+
+      $last_count = 1;
+
+      $CODE = 'REVAR';
+
+     
+	  $IPO = '/';
+	  $TAHUN = date('y');
+	  $BULAN = date('m');
+	  /* $CODELOCATION = $location_id; */
+	  
+      // get last count
+      $exchange_adj_ar = Exchange_adj_ars::select('code')
+        ->where('code','like', $CODE.$IPO.$TAHUN.$BULAN.$IPO.'%')
+        ->orderBy('code', 'desc')
+        ->first();
+	  
+	  
+
+        // debug sql
+        //$queries = $app->db->getQueryLog();
+        //var_dump( $queries);die();
+        //$last_query = end($queries);
+        //var_dump( $last_query);die();
+
+      if($exchange_adj_ar) {
+        $data = explode($CODE.$IPO.$TAHUN.$BULAN.$IPO, $exchange_adj_ar->code);
+        $last_count = intval($data[1]) + 1;
+      }
+
+      $curr_count = '';
+      $curr_count = sprintf('%04d', $curr_count + intval($last_count));
+      $COUNTER = $curr_count;
+
+      return $CODE.$IPO.$TAHUN.$BULAN.$IPO.$COUNTER;
+	  
+    }
+}
